@@ -7,6 +7,7 @@
       radius: 25,
       blur: 15,
     };
+  var latlngs = [];
 
   function status(message) {
     $("#currentStatus").text(message);
@@ -43,7 +44,44 @@
       dropzone.disable();
     });
   }
+  // Add an event listener for the "Apply" button
+  $("#apply-range").click(function () {
+    applyDateRange();
+  });
 
+  // Function to apply the date range and update the heatmap
+  function applyDateRange() {
+    var startDate = new Date($("#start-date").val());
+    var endDate = new Date($("#end-date").val());
+
+    if (isNaN(startDate.getTime()) || isNaN(endDate.getTime())) {
+      alert("Please select valid start and end dates.");
+      return;
+    }
+
+    // Filter the heatmap data based on the selected date range
+    var filteredLatLngs = latlngs.filter(function (latlng) {
+      var timestamp = new Date(latlng[2]);
+      return timestamp >= startDate && timestamp <= endDate;
+    });
+
+    // Update the heatmap with the filtered data
+    heat._latlngs = filteredLatLngs;
+    heat.redraw();
+
+    // Hide the date range selector
+    $("#date-range").addClass("hidden");
+  }
+
+  // Show the date range selector when needed
+  function showDateRangeSelector() {
+    $("#date-range").removeClass("hidden");
+  }
+
+  // Add an event listener to trigger the date range selector
+  $("#show-date-range").click(function () {
+    showDateRangeSelector();
+  });
   function stageTwo(file) {
     heat = L.heatLayer([], heatOptions).addTo(map);
 
@@ -70,20 +108,20 @@
     $("#working").removeClass("hidden");
 
     var SCALAR_E7 = 0.0000001; // Since Google Takeout stores latlngs as integers
-    var latlngs = [];
 
     var os = new oboe();
 
     os.node("locations.*", function (location) {
       var latitude = location.latitudeE7 * SCALAR_E7,
-        longitude = location.longitudeE7 * SCALAR_E7;
+        longitude = location.longitudeE7 * SCALAR_E7,
+        timestamp = location.timestamp;
 
       // Handle negative latlngs due to google unsigned/signed integer bug.
       if (latitude > 180) latitude = latitude - 2 ** 32 * SCALAR_E7;
       if (longitude > 180) longitude = longitude - 2 ** 32 * SCALAR_E7;
 
       if (type === "json" && !isNaN(latitude) && !isNaN(longitude))
-        latlngs.push([latitude, longitude]);
+        latlngs.push([latitude, longitude,timestamp]);
       return oboe.drop;
     }).done(function () {
       status("Generating map...");

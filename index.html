@@ -54,6 +54,16 @@
             Location History Visualizer
             <span>(hover for additional controls)</span>
         </div>
+        <div id="date-range" class="content-box hidden">
+            <h2>Select Date Range</h2>
+            <label for="start-date">Start Date:</label>
+            <input type="date" id="start-date" name="start-date">
+            <label for="end-date">End Date:</label>
+            <input type="date" id="end-date" name="end-date">
+            <button id="apply-range">Apply</button>
+        </div>
+        <button id="show-date-range">Select Date Range</button>
+
         <div class="control-block">
             <label for="radius">Point radius</label>
             <input type="range" min="1" max="30" id="radius" class="control">
